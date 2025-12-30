@@ -118,9 +118,10 @@ curl -X POST "https://your-app.railway.app/v1/audio-to-video/generations" \
   -F "image=@portrait.jpg" \
   -F "audio=@voice.mp3" \
   -F "prompt=" \
-  -F "resolution=1080p" \
-  -F "audio_duration=5.06"
+  -F "resolution=1080p"
 ```
+
+**Note**: `audio_duration` is optional. Leave it empty or omit it - the API auto-detects audio length.
 
 ### JavaScript/Fetch Example (Website Integration)
 ```javascript
@@ -138,6 +139,7 @@ async function generateTalkingPortrait(imageFile, audioFile) {
   formData.append('audio', audioFile);
   formData.append('prompt', ''); // Optional
   formData.append('resolution', '1080p'); // or '720p'
+  // audio_duration is optional - API auto-detects from audio file
   
   try {
     const response = await fetch('https://your-app.railway.app/v1/audio-to-video/generations', {
@@ -197,8 +199,8 @@ with open('portrait.jpg', 'rb') as img, open('voice.mp3', 'rb') as aud:
     
     data = {
         'prompt': '',
-        'resolution': '1080p',
-        'audio_duration': 5.06
+        'resolution': '1080p'
+        # audio_duration is optional - omit to auto-detect
     }
     
     response = requests.post(url, files=files, data=data)
