@@ -2,6 +2,7 @@ import asyncio
 import json
 import time
 from typing import Optional, Literal, List, Union
+from urllib.parse import urlparse
 import os
 import mimetypes
 
@@ -1129,7 +1130,10 @@ async def generate_audio_to_video(
             image_upload_response.raise_for_status()
             image_upload_data = image_upload_response.json()
             
+            print(f"Image upload response: {image_upload_data}")
+            
             image_presigned_url = image_upload_data.get("url")
+            
             if not image_presigned_url:
                 raise HTTPException(status_code=500, detail=f"Failed to get image presigned URL: {image_upload_data}")
             
@@ -1144,8 +1148,11 @@ async def generate_audio_to_video(
             
             print(f"Image uploaded successfully. Status: {image_put_response.status_code}")
             
-            uploaded_image_url = image_presigned_url.split("?")[0]
-            print(f"Image URL for generation: {uploaded_image_url}")
+            # Extract filename from R2 URL and construct public CDN URL
+            parsed_r2_url = urlparse(image_presigned_url)
+            r2_path = parsed_r2_url.path  # e.g., /upload/sam566-1767091949020rn5aai.png
+            uploaded_image_url = f"https://cococlip.aiitalianbrainrot.com{r2_path}"
+            print(f"Using CDN URL: {uploaded_image_url}")
             
             audio_content = await audio.read()
             audio_name = sanitize_filename(audio.filename or "audio.mp3")
@@ -1159,7 +1166,10 @@ async def generate_audio_to_video(
             audio_upload_response.raise_for_status()
             audio_upload_data = audio_upload_response.json()
             
+            print(f"Audio upload response: {audio_upload_data}")
+            
             audio_presigned_url = audio_upload_data.get("url")
+            
             if not audio_presigned_url:
                 raise HTTPException(status_code=500, detail=f"Failed to get audio presigned URL: {audio_upload_data}")
             
@@ -1174,8 +1184,11 @@ async def generate_audio_to_video(
             
             print(f"Audio uploaded successfully. Status: {audio_put_response.status_code}")
             
-            uploaded_audio_url = audio_presigned_url.split("?")[0]
-            print(f"Audio URL for generation: {uploaded_audio_url}")
+            # Extract filename from R2 URL and construct public CDN URL
+            parsed_audio_r2_url = urlparse(audio_presigned_url)
+            audio_r2_path = parsed_audio_r2_url.path
+            uploaded_audio_url = f"https://cococlip.aiitalianbrainrot.com{audio_r2_path}"
+            print(f"Using audio CDN URL: {uploaded_audio_url}")
             
             generation_payload = {
                 "image": uploaded_image_url,
