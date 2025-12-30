@@ -7,6 +7,7 @@ import mimetypes
 
 import httpx
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -15,7 +16,15 @@ app = FastAPI(
     description="Reverse proxy for Cococlip.ai text-to-video generation with support for multiple AI models",
     version="1.0.0",
     docs_url=None
-) # Disable default docs to serve custom dark one
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Headers extracted from the provided CURL command
 HEADERS = {
@@ -36,6 +45,36 @@ HEADERS = {
     "useremail": "cosmiccreation106@gmail.com",
     "cookie": "__Host-authjs.csrf-token=252ceb859e4294ba32fe4878776bfbb1672871d7d1ba8a8bcea563c42357c394%7C2f5e1586b11d0c631fcc3a0ada6bdbf6a8a66a08f8de835e61d14de36a3b0dba; __Secure-authjs.callback-url=https%3A%2F%2Fcococlip.ai; __Secure-authjs.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiOE8zeXc4ZnVvbXBpd3VNbHBuUnRldkJ6bUJrLWFXV3htcGtyVzBGZUVSVGpUZVpOaWlBNDBRVGZ1d2M1SGFDWjRMMHkxMnVzSi14TGxBdVFUYnFDdHcifQ..N7xwsdlnrH_55_t-HSo3gg.QQUrllrAS27IWr9PaWUreBnWrUzU62tAhXXAHJfWV3_tKt5iuIc5nTBd6p1bZfqOabE2Dw-KrOVyXdiuqXaFylc9ak5Vw6MM-RCqy01tMVvY67Ko-B5bowxGqZ_LGBjmTk9-_dFk1PsUBlKN70OdR97-cu8lx475lt4eZCWFWNBgXKR4fpajOrovU9wPQX0yO5V6s9ZiptxoygC3NcLaonM2sFask51DBcg-7dhgnXJPT6e6ODS_rsLCPmBvPQvirSWRZB4NV62jvxbte1vAWsHUD1WdyMI2ibx-0uIu-NUeBZrRNw5OJoJasHzjP6auIBnc_TsKQJK041jGC9ikhNHR6c2JWrTPBFaWq8awQNNWIzGG0Hg5ox6qhn4admWuMqfeA0RDH3qQBaz0LJkrDQ.03JwqV5Wi-UwSRvv-obHhPYp4wjab3pmlEFTllHeVlQ"
 }
+
+# --- Helper Functions ---
+
+def validate_image_file(file: UploadFile) -> None:
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+    allowed_extensions = [".jpg", ".jpeg", ".png", ".webp"]
+    
+    content_type = file.content_type or ""
+    filename = file.filename or ""
+    file_ext = os.path.splitext(filename)[1].lower()
+    
+    if content_type not in allowed_types and file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid image file type. Allowed: JPEG, PNG, WebP. Got: {content_type or file_ext}"
+        )
+
+def validate_audio_file(file: UploadFile) -> None:
+    allowed_types = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/wave"]
+    allowed_extensions = [".mp3", ".wav", ".wave"]
+    
+    content_type = file.content_type or ""
+    filename = file.filename or ""
+    file_ext = os.path.splitext(filename)[1].lower()
+    
+    if content_type not in allowed_types and file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid audio file type. Allowed: MP3, WAV. Got: {content_type or file_ext}"
+        )
 
 # --- Pydantic Models ---
 
@@ -830,6 +869,8 @@ async def generate_video_from_image(
     enable_prompt_expansion: bool = Form(False, description="Enable automatic prompt expansion"),
     negative_prompt: str = Form("", description="Negative prompt to avoid unwanted elements")
 ):
+    validate_image_file(image)
+    
     if model not in ["hailuo23fast", "wan25fast"]:
         raise HTTPException(status_code=400, detail="Invalid model. Choose hailuo23fast or wan25fast")
     
@@ -1049,6 +1090,9 @@ async def generate_audio_to_video(
     resolution: str = Form("720p", description="Video resolution (720p or 1080p)"),
     audio_duration: Optional[float] = Form(None, description="Audio duration in seconds (auto-detected if not provided)")
 ):
+    validate_image_file(image)
+    validate_audio_file(audio)
+    
     async with httpx.AsyncClient(timeout=180.0) as client:
         try:
             image_content = await image.read()
