@@ -1,7 +1,7 @@
 import asyncio
 import json
 import time
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Union
 import os
 import mimetypes
 
@@ -1088,10 +1088,19 @@ async def generate_audio_to_video(
     audio: UploadFile = File(..., description="Audio file to sync with the portrait"),
     prompt: str = Form("", description="Optional text prompt for additional control"),
     resolution: str = Form("720p", description="Video resolution (720p or 1080p)"),
-    audio_duration: Optional[float] = Form(None, description="Audio duration in seconds (auto-detected if not provided)")
+    audio_duration: Union[float, str, None] = Form(None, description="Audio duration in seconds (auto-detected if not provided)")
 ):
     validate_image_file(image)
     validate_audio_file(audio)
+    
+    # Handle empty string for audio_duration
+    if audio_duration == "" or audio_duration is None:
+        audio_duration = None
+    else:
+        try:
+            audio_duration = float(audio_duration)
+        except (ValueError, TypeError):
+            audio_duration = None
     
     async with httpx.AsyncClient(timeout=180.0) as client:
         try:
