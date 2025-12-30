@@ -48,6 +48,19 @@ HEADERS = {
 
 # --- Helper Functions ---
 
+def sanitize_filename(filename: str) -> str:
+    """Remove spaces and special characters from filename"""
+    import re
+    # Get name and extension
+    name, ext = os.path.splitext(filename)
+    # Replace spaces and special chars with underscores
+    name = re.sub(r'[^\w\-]', '_', name)
+    # Remove consecutive underscores
+    name = re.sub(r'_+', '_', name)
+    # Remove leading/trailing underscores
+    name = name.strip('_')
+    return f"{name}{ext}"
+
 def validate_image_file(file: UploadFile) -> None:
     allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
     allowed_extensions = [".jpg", ".jpeg", ".png", ".webp"]
@@ -877,7 +890,7 @@ async def generate_video_from_image(
     async with httpx.AsyncClient(timeout=120.0) as client:
         try:
             file_content = await image.read()
-            file_name = image.filename or "image.jpg"
+            file_name = sanitize_filename(image.filename or "image.jpg")
             
             upload_payload = {"fileName": file_name}
             upload_response = await client.post(
@@ -1105,7 +1118,7 @@ async def generate_audio_to_video(
     async with httpx.AsyncClient(timeout=180.0) as client:
         try:
             image_content = await image.read()
-            image_name = image.filename or "image.jpg"
+            image_name = sanitize_filename(image.filename or "image.jpg")
             
             image_upload_payload = {"fileName": image_name}
             image_upload_response = await client.post(
@@ -1129,10 +1142,13 @@ async def generate_audio_to_video(
             )
             image_put_response.raise_for_status()
             
+            print(f"Image uploaded successfully. Status: {image_put_response.status_code}")
+            
             uploaded_image_url = image_presigned_url.split("?")[0]
+            print(f"Image URL for generation: {uploaded_image_url}")
             
             audio_content = await audio.read()
-            audio_name = audio.filename or "audio.mp3"
+            audio_name = sanitize_filename(audio.filename or "audio.mp3")
             
             audio_upload_payload = {"fileName": audio_name}
             audio_upload_response = await client.post(
@@ -1156,7 +1172,10 @@ async def generate_audio_to_video(
             )
             audio_put_response.raise_for_status()
             
+            print(f"Audio uploaded successfully. Status: {audio_put_response.status_code}")
+            
             uploaded_audio_url = audio_presigned_url.split("?")[0]
+            print(f"Audio URL for generation: {uploaded_audio_url}")
             
             generation_payload = {
                 "image": uploaded_image_url,
@@ -1170,6 +1189,8 @@ async def generate_audio_to_video(
             else:
                 generation_payload["audio_duration"] = 5.0
             
+            print(f"Generation payload: {generation_payload}")
+            
             generation_response = await client.post(
                 "https://cococlip.ai/api/v3/audio2video/Infinitetalk",
                 headers=HEADERS,
@@ -1177,6 +1198,8 @@ async def generate_audio_to_video(
             )
             generation_response.raise_for_status()
             generation_data = generation_response.json()
+            
+            print(f"Generation response: {generation_data}")
             
             task_id = generation_data.get("task_id")
             if not task_id:
