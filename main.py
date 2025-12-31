@@ -915,7 +915,12 @@ async def generate_video_from_image(
             )
             put_response.raise_for_status()
             
-            uploaded_image_url = presigned_url.split("?")[0]
+            print(f"Image uploaded successfully. Status: {put_response.status_code}")
+            
+            parsed_r2_url = urlparse(presigned_url)
+            r2_path = parsed_r2_url.path
+            uploaded_image_url = f"https://cococlip.aiitalianbrainrot.com{r2_path}"
+            print(f"Using CDN URL: {uploaded_image_url}")
             
             if model == "hailuo23fast":
                 generation_payload = {
