@@ -13,8 +13,8 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from pydantic import BaseModel, Field, ConfigDict
 
 app = FastAPI(
-    title="Cococlip AI Video Generation API",
-    description="Reverse proxy for Cococlip.ai text-to-video generation with support for multiple AI models",
+    title="Cococlip AI Video & Image Generation API",
+    description="Reverse proxy for Cococlip.ai and PicLumen AI with support for text-to-video, image-to-video, audio-to-video, and text-to-image generation",
     version="1.0.0",
     docs_url=None
 )
@@ -45,6 +45,26 @@ HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
     "useremail": "cosmiccreation106@gmail.com",
     "cookie": "__Host-authjs.csrf-token=252ceb859e4294ba32fe4878776bfbb1672871d7d1ba8a8bcea563c42357c394%7C2f5e1586b11d0c631fcc3a0ada6bdbf6a8a66a08f8de835e61d14de36a3b0dba; __Secure-authjs.callback-url=https%3A%2F%2Fcococlip.ai; __Secure-authjs.session-token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiOE8zeXc4ZnVvbXBpd3VNbHBuUnRldkJ6bUJrLWFXV3htcGtyVzBGZUVSVGpUZVpOaWlBNDBRVGZ1d2M1SGFDWjRMMHkxMnVzSi14TGxBdVFUYnFDdHcifQ..N7xwsdlnrH_55_t-HSo3gg.QQUrllrAS27IWr9PaWUreBnWrUzU62tAhXXAHJfWV3_tKt5iuIc5nTBd6p1bZfqOabE2Dw-KrOVyXdiuqXaFylc9ak5Vw6MM-RCqy01tMVvY67Ko-B5bowxGqZ_LGBjmTk9-_dFk1PsUBlKN70OdR97-cu8lx475lt4eZCWFWNBgXKR4fpajOrovU9wPQX0yO5V6s9ZiptxoygC3NcLaonM2sFask51DBcg-7dhgnXJPT6e6ODS_rsLCPmBvPQvirSWRZB4NV62jvxbte1vAWsHUD1WdyMI2ibx-0uIu-NUeBZrRNw5OJoJasHzjP6auIBnc_TsKQJK041jGC9ikhNHR6c2JWrTPBFaWq8awQNNWIzGG0Hg5ox6qhn4admWuMqfeA0RDH3qQBaz0LJkrDQ.03JwqV5Wi-UwSRvv-obHhPYp4wjab3pmlEFTllHeVlQ"
+}
+
+PICLUMEN_HEADERS = {
+    "accept": "application/json",
+    "accept-language": "en-US,en;q=0.6",
+    "authorization": "eb4a35602260f4046164e4f717e1c7af97460c99",
+    "content-type": "application/json;charset=UTF-8",
+    "contenttype": "application/x-www-form-urlencoded;charset=UTF-8",
+    "origin": "https://www.piclumen.com",
+    "platform": "Web",
+    "priority": "u=1, i",
+    "referer": "https://www.piclumen.com/",
+    "sec-ch-ua": '"Brave";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-site",
+    "sec-gpc": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
 }
 
 # --- Helper Functions ---
@@ -318,6 +338,92 @@ class AudioToVideoResponse(BaseModel):
     status: str = Field(..., description="Status of the video generation")
     task_id: str = Field(..., description="Task ID for tracking")
     inference_time: Optional[int] = Field(None, description="Time taken for inference in milliseconds")
+
+class TextToImageRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "model": "piclumen-realistic-v2",
+                "prompt": "cat sitting on a couch",
+                "negative_prompt": "NSFW, watermark",
+                "width": 1024,
+                "height": 1024,
+                "steps": 25,
+                "cfg_scale": 4.5,
+                "batch_size": 1
+            }
+        }
+    )
+    
+    model: Literal["piclumen-realistic-v2", "midjourney"] = Field(
+        default="piclumen-realistic-v2",
+        description="AI model for image generation (piclumen-realistic-v2 or midjourney)",
+        json_schema_extra={"example": "piclumen-realistic-v2"}
+    )
+    prompt: str = Field(
+        ...,
+        description="Text description for the image",
+        min_length=1,
+        max_length=2000,
+        json_schema_extra={"example": "cat sitting on a couch"}
+    )
+    negative_prompt: str = Field(
+        default="NSFW, watermark",
+        description="Negative prompt to avoid unwanted elements (not used by Midjourney)",
+        json_schema_extra={"example": "NSFW, watermark"}
+    )
+    width: Literal[512, 768, 1024] = Field(
+        default=1024,
+        description="Image width",
+        json_schema_extra={"example": 1024}
+    )
+    height: Literal[512, 768, 1024] = Field(
+        default=1024,
+        description="Image height",
+        json_schema_extra={"example": 1024}
+    )
+    steps: Optional[int] = Field(
+        default=25,
+        ge=0,
+        le=50,
+        description="Number of generation steps (ignored by Midjourney, use 0)",
+        json_schema_extra={"example": 25}
+    )
+    cfg_scale: Optional[float] = Field(
+        default=4.5,
+        ge=0.0,
+        le=20.0,
+        description="CFG scale for prompt adherence (ignored by Midjourney, use 0)",
+        json_schema_extra={"example": 4.5}
+    )
+    batch_size: int = Field(
+        default=1,
+        ge=1,
+        le=4,
+        description="Number of images to generate (1-4 for PicLumen, always 4 for Midjourney)",
+        json_schema_extra={"example": 1}
+    )
+
+class ImageData(BaseModel):
+    url: str = Field(..., description="URL of the generated image")
+
+class TextToImageResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "created": 1704067200,
+                "data": [
+                    {"url": "https://images.piclumen.com/normal/20251231/14/c2f4277c35934b55a0c67d23cca3b6da.webp"},
+                    {"url": "https://images.piclumen.com/normal/20251231/14/f8e9d2c1a4b35678e9f01234a5b6c7d8.webp"}
+                ],
+                "task_id": "ed67501f-6e29-487b-955d-086dc9646037"
+            }
+        }
+    )
+    
+    created: int = Field(..., description="Unix timestamp of when the images were created")
+    data: List[ImageData] = Field(..., description="List of generated images")
+    task_id: str = Field(..., description="Task ID for tracking")
 
 # --- Endpoints ---
 
@@ -605,7 +711,7 @@ async def custom_swagger_ui_html():
     tags=["Models"],
     summary="List Available Models",
     description="""
-    Returns a list of available AI models for video generation.
+    Returns a list of available AI models for video and image generation.
     
     This endpoint is OpenAI-compatible and follows the same response structure.
     
@@ -615,6 +721,8 @@ async def custom_swagger_ui_html():
     - `hailuo23fast` - Fast image-to-video model (6s/10s duration, 768p)
     - `wan25fast` - Wan 2.5 image-to-video model (5s/10s duration, 720p/1080p)
     - `Infinitetalk` - Audio-to-video model (talking portrait, 720p/1080p)
+    - `piclumen-realistic-v2` - PicLumen Realistic V2 text-to-image model
+    - `midjourney` - Midjourney-style text-to-image model (supports batch generation)
     """,
     responses={
         200: {
@@ -694,6 +802,18 @@ async def list_models():
                 object="model",
                 created=1704067200,
                 owned_by="cococlip"
+            ),
+            ModelObject(
+                id="piclumen-realistic-v2",
+                object="model",
+                created=1704067200,
+                owned_by="piclumen"
+            ),
+            ModelObject(
+                id="midjourney",
+                object="model",
+                created=1704067200,
+                owned_by="piclumen"
             )
         ]
     )
@@ -1278,6 +1398,241 @@ async def generate_audio_to_video(
                     continue
                 raise HTTPException(
                     status_code=e.response.status_code, 
+                    detail=f"Polling failed: {e.response.text}"
+                )
+
+@app.post(
+    "/v1/text-to-image/generations",
+    response_model=TextToImageResponse,
+    tags=["Text to Image"],
+    summary="Generate Image from Text",
+    description="""
+    Generate images from a text prompt using PicLumen or Midjourney models.
+    
+    **Process:**
+    1. Submit a text prompt describing the desired image
+    2. The API creates a generation task and returns a task ID
+    3. Polls automatically until images are ready
+    4. Returns the final image URLs (1-4 images depending on batch_size)
+    
+    **Parameters:**
+    - `model`: Choose between "piclumen-realistic-v2" or "midjourney"
+    - `prompt`: Text description of the image (required)
+    - `negative_prompt`: Elements to avoid (only for piclumen-realistic-v2)
+    - `width`: Image width in pixels (512, 768, or 1024)
+    - `height`: Image height in pixels (512, 768, or 1024)
+    - `batch_size`: Number of images to generate (1-4, default: 1)
+    - `steps`: Generation steps (piclumen-realistic-v2 only, 1-50, default: 25)
+    - `cfg_scale`: CFG scale (piclumen-realistic-v2 only, 1.0-20.0, default: 4.5)
+    
+    **Models:**
+    - **PicLumen Realistic V2** - High quality realistic image generation (1-4 images)
+    - **Midjourney** - Midjourney-style artistic image generation (always generates 4 images)
+    """,
+    responses={
+        200: {
+            "description": "Image(s) generated successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "created": 1704067200,
+                        "data": [
+                            {"url": "https://images.piclumen.com/normal/20251231/14/c2f4277c35934b55a0c67d23cca3b6da.webp"},
+                            {"url": "https://images.piclumen.com/normal/20251231/14/f8e9d2c1a4b35678e9f01234a5b6c7d8.webp"},
+                            {"url": "https://images.piclumen.com/normal/20251231/14/a1b2c3d4e5f6789012345678901abcde.webp"},
+                            {"url": "https://images.piclumen.com/normal/20251231/14/9876543210fedcba09876543210fedcb.webp"}
+                        ],
+                        "task_id": "ed67501f-6e29-487b-955d-086dc9646037"
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Invalid request or generation failed",
+        },
+        500: {
+            "description": "Internal server error or upstream API error",
+        }
+    }
+)
+async def generate_text_to_image(request: TextToImageRequest):
+    import random
+    
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        try:
+            seed = random.randint(1000000000, 9999999999)
+            
+            if request.model == "piclumen-realistic-v2":
+                generation_payload = {
+                    "model_id": "34ec1b5a-8962-4a93-b047-68cec9691dc2",
+                    "prompt": request.prompt,
+                    "negative_prompt": request.negative_prompt,
+                    "seed": seed,
+                    "mainCategory": "",
+                    "subCategory": "",
+                    "continueCreate": False,
+                    "resolution": {
+                        "width": request.width,
+                        "height": request.height,
+                        "batch_size": request.batch_size
+                    },
+                    "batch_size": request.batch_size,
+                    "steps": request.steps,
+                    "cfg": request.cfg_scale,
+                    "sampler_name": "dpmpp_2m_sde_gpu",
+                    "scheduler": "karras",
+                    "multi_img2img_info": {
+                        "style_list": []
+                    },
+                    "img_control_info": {
+                        "style_list": []
+                    },
+                    "highPixels": False,
+                    "model_ability": {
+                        "anime_style_control": None
+                    },
+                    "denoise": 1,
+                    "type": "image"
+                }
+            else:
+                generation_payload = {
+                    "model_id": "tmjv7-a1b2c3d4-e5f6-4789-0abc-def123456789",
+                    "prompt": request.prompt,
+                    "negative_prompt": "",
+                    "seed": seed,
+                    "mainCategory": "",
+                    "subCategory": "",
+                    "continueCreate": False,
+                    "resolution": {
+                        "width": request.width,
+                        "height": request.height,
+                        "batch_size": 4
+                    },
+                    "batch_size": 4,
+                    "steps": 0,
+                    "cfg": 0,
+                    "sampler_name": None,
+                    "scheduler": None,
+                    "multi_img2img_info": {
+                        "style_list": []
+                    },
+                    "img_control_info": {
+                        "style_list": []
+                    },
+                    "highPixels": False,
+                    "model_ability": {
+                        "anime_style_control": None
+                    },
+                    "denoise": 0,
+                    "type": "image"
+                }
+            
+            print(f"Creating generation task with payload: {generation_payload}")
+            
+            generation_response = await client.post(
+                "https://api.piclumen.com/api/gen/create",
+                headers=PICLUMEN_HEADERS,
+                json=generation_payload
+            )
+            generation_response.raise_for_status()
+            generation_data = generation_response.json()
+            
+            print(f"Generation response: {generation_data}")
+            
+            if generation_data.get("status") != 0:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Generation request failed: {generation_data.get('message', 'Unknown error')}"
+                )
+            
+            mark_id = generation_data.get("data", {}).get("markId")
+            if not mark_id:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Could not extract markId from response: {generation_data}"
+                )
+            
+            print(f"Got markId: {mark_id}")
+            
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=f"Generation request failed: {e.response.text}"
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+        
+        while True:
+            try:
+                await asyncio.sleep(5)
+                
+                status_response = await client.post(
+                    "https://api.piclumen.com/api/task/batch-process-task",
+                    headers=PICLUMEN_HEADERS,
+                    json=[mark_id]
+                )
+                status_response.raise_for_status()
+                
+                try:
+                    status_data = status_response.json()
+                except json.JSONDecodeError:
+                    print(f"Non-JSON response received. Content: {status_response.text}")
+                    continue
+                
+                print(f"Status response: {status_data}")
+                
+                if status_data.get("status") != 0:
+                    print(f"Unexpected status code: {status_data}")
+                    continue
+                
+                task_data_list = status_data.get("data", [])
+                if not task_data_list or len(task_data_list) == 0:
+                    print("No task data in response. Waiting...")
+                    continue
+                
+                task_data = task_data_list[0]
+                task_status = task_data.get("status")
+                
+                print(f"Current task status: {task_status}")
+                
+                if task_status == "success":
+                    img_urls = task_data.get("img_urls")
+                    if not img_urls or len(img_urls) == 0:
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"No image URLs in completed response: {status_data}"
+                        )
+                    
+                    image_urls = [img.get("imgUrl") for img in img_urls if img.get("imgUrl")]
+                    if not image_urls:
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"Image URLs not found in response: {status_data}"
+                        )
+                    
+                    image_data_list = [ImageData(url=url) for url in image_urls]
+                    
+                    return TextToImageResponse(
+                        created=int(time.time()),
+                        data=image_data_list,
+                        task_id=mark_id
+                    )
+                
+                elif task_status == "failed":
+                    raise HTTPException(status_code=400, detail="Image generation failed")
+                
+                elif task_status == "running":
+                    print("Task still running. Waiting...")
+                else:
+                    print(f"Unknown status: {task_status}. Waiting...")
+                
+            except httpx.HTTPStatusError as e:
+                print(f"Polling error: {e.response.text}")
+                if e.response.status_code == 429:
+                    await asyncio.sleep(20)
+                    continue
+                raise HTTPException(
+                    status_code=e.response.status_code,
                     detail=f"Polling failed: {e.response.text}"
                 )
 
