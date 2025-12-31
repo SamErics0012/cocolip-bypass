@@ -112,8 +112,24 @@ console.log('Video URL:', result.url);
 
 **⚠️ IMPORTANT**: The `image` parameter must be an **image file** (JPEG, PNG, WebP), NOT a video file. If you upload a video file (`.mp4`), you will get a 400 error from the backend.
 
-### cURL Example
+### cURL Example (With Prompt Support)
 ```bash
+# Example 1: With motion prompt
+curl -X POST "https://your-app.railway.app/v1/audio-to-video/generations" \
+  -F "image=@portrait.jpg" \
+  -F "audio=@voice.mp3" \
+  -F "prompt=make video in motion" \
+  -F "resolution=1080p" \
+  -F "audio_duration=5.06"
+
+# Example 2: With animation instructions
+curl -X POST "https://your-app.railway.app/v1/audio-to-video/generations" \
+  -F "image=@portrait.jpg" \
+  -F "audio=@voice.mp3" \
+  -F "prompt=animate with realistic expressions and head movements" \
+  -F "resolution=720p"
+
+# Example 3: Without prompt (empty)
 curl -X POST "https://your-app.railway.app/v1/audio-to-video/generations" \
   -F "image=@portrait.jpg" \
   -F "audio=@voice.mp3" \
@@ -121,7 +137,10 @@ curl -X POST "https://your-app.railway.app/v1/audio-to-video/generations" \
   -F "resolution=1080p"
 ```
 
-**Note**: `audio_duration` is optional. Leave it empty or omit it - the API auto-detects audio length.
+**Notes**: 
+- ✅ `prompt` field is **SUPPORTED** - use it to add motion or animation instructions
+- `audio_duration` is optional. Leave it empty or omit it - the API auto-detects audio length.
+- Example prompts: "make video in motion", "animate with realistic expressions", "natural head movements and blinking"
 
 ### JavaScript/Fetch Example (Website Integration)
 ```javascript
@@ -137,7 +156,7 @@ async function generateTalkingPortrait(imageFile, audioFile) {
   const formData = new FormData();
   formData.append('image', imageFile);
   formData.append('audio', audioFile);
-  formData.append('prompt', ''); // Optional
+  formData.append('prompt', 'make video in motion'); // ✅ SUPPORTED - add motion/animation instructions
   formData.append('resolution', '1080p'); // or '720p'
   // audio_duration is optional - API auto-detects from audio file
   
@@ -198,7 +217,7 @@ with open('portrait.jpg', 'rb') as img, open('voice.mp3', 'rb') as aud:
     }
     
     data = {
-        'prompt': '',
+        'prompt': 'make video in motion',  # ✅ SUPPORTED - add motion instructions
         'resolution': '1080p'
         # audio_duration is optional - omit to auto-detect
     }
@@ -497,6 +516,7 @@ The API polls the Cococlip backend every 10 seconds. Large requests may take 1-3
 ### Audio-to-Video
 - Use clear portrait images with visible face
 - Audio should be clear speech/voice
+- **✅ Prompt is supported**: Add motion instructions like "make video in motion", "animate with realistic expressions"
 - Recommended resolution: 1080p for best quality
 - Keep audio under 30 seconds for faster processing
 
