@@ -50,7 +50,7 @@ HEADERS = {
 PICLUMEN_HEADERS = {
     "accept": "application/json",
     "accept-language": "en-US,en;q=0.6",
-    "authorization": "eb4a35602260f4046164e4f717e1c7af97460c99",
+    "authorization": "0283a4d403da081d4a789eb1f8ad0fc6a5e6ee94",
     "content-type": "application/json;charset=UTF-8",
     "contenttype": "application/x-www-form-urlencoded;charset=UTF-8",
     "origin": "https://www.piclumen.com",
