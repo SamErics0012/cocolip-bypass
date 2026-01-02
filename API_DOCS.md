@@ -18,6 +18,7 @@ Visit `/docs` for Swagger UI interface to test all endpoints interactively.
 | `/v1/text-to-video/generations` | POST | Generate video from text prompt |
 | `/v1/image-to-video/generations` | POST | Generate video from image + prompt |
 | `/v1/audio-to-video/generations` | POST | Generate talking portrait from image + audio |
+| `/v1/imagine-text-to-video/generations` | POST | Generate video from text using Imagine.art |
 
 ---
 
@@ -37,7 +38,8 @@ curl -X GET "https://your-app.railway.app/v1/models"
     {"id": "seedancev1lite", "object": "model", "created": 1704067200, "owned_by": "cococlip"},
     {"id": "hailuo23fast", "object": "model", "created": 1704067200, "owned_by": "cococlip"},
     {"id": "wan25fast", "object": "model", "created": 1704067200, "owned_by": "cococlip"},
-    {"id": "Infinitetalk", "object": "model", "created": 1704067200, "owned_by": "cococlip"}
+    {"id": "Infinitetalk", "object": "model", "created": 1704067200, "owned_by": "cococlip"},
+    {"id": "imagine-text-to-video", "object": "model", "created": 1704067200, "owned_by": "imagine.art"}
   ]
 }
 ```
@@ -239,6 +241,67 @@ with open('portrait.jpg', 'rb') as img, open('voice.mp3', 'rb') as aud:
   "inference_time": 128036
 }
 ```
+
+---
+
+## 5. Imagine.art Text-to-Video Generation
+
+### Request (JSON)
+```bash
+curl -X POST "https://your-app.railway.app/v1/imagine-text-to-video/generations" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A cat eating hotdogs in a park",
+    "aspect_ratio": "16:9",
+    "duration": 12,
+    "resolution": "1080p",
+    "style_id": 60503,
+    "is_enhance": true
+  }'
+```
+
+### JavaScript/Fetch Example
+```javascript
+const response = await fetch('https://your-app.railway.app/v1/imagine-text-to-video/generations', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    prompt: 'A cat eating hotdogs in a park',
+    aspect_ratio: '16:9',
+    duration: 12,
+    resolution: '1080p',
+    style_id: 60503,
+    is_enhance: true
+  })
+});
+
+const result = await response.json();
+console.log('Video ID:', result.id);
+console.log('Video URL:', result.video_url);
+console.log('Status:', result.status);
+
+// The API automatically polls for completion!
+// The video_url in the response is ready to use
+console.log('Video is ready at:', result.video_url);
+```
+
+### Response
+```json
+{
+  "id": "85f8e695-38cc-4023-b15e-49313cadcbfc",
+  "status": "COMPLETED",
+  "video_url": "https://asset.imagine.art/processed/85f8e695-38cc-4023-b15e-49313cadcbfc",
+  "batch_id": "dde09073-c355-4443-aa80-0736d8358621"
+}
+```
+
+**Important Notes:**
+- The API automatically polls for completion (typically 1-3 minutes)
+- The endpoint waits until the video is fully generated before returning
+- The `video_url` in the response is ready to use immediately
+- No manual polling required - just like other video generation endpoints
 
 ---
 
@@ -464,7 +527,48 @@ with open('portrait.jpg', 'rb') as img, open('voice.mp3', 'rb') as aud:
 - **Duration**: Matches audio length
 - **Use case**: Talking portraits, lip-sync videos
 
+### Imagine.art Text-to-Video Model
+
+#### imagine-text-to-video
+- **Resolution**: 720p or 1080p
+- **Duration**: 5s, 6s, or 12s
+- **Aspect Ratio**: 16:9, 9:16, 4:3, 1:1
+- **Use case**: High-quality text-to-video generation with style control
+- **Special Features**: 
+  - Style customization via style_id
+  - Prompt enhancement support
+  - Seedance T2V model backend
+  - Automatic polling (no manual polling needed)
+
 ---
+</text>
+
+<old_text line=493>
+### Audio-to-Video
+- Use clear portrait images with visible face
+- Audio should be clear speech/voice
+- **✅ Prompt is supported**: Add motion instructions like "make video in motion", "animate with realistic expressions"
+- Recommended resolution: 1080p for best quality
+- Keep audio under 30 seconds for faster processing
+
+### Image-to-Video
+- Use high-quality source images
+- Describe motion clearly in prompt
+- Longer durations (10s) allow more complex animations
+
+### Text-to-Video
+- Be specific in prompts
+- Describe scene, subject, and action clearly
+- Use descriptive language for better results
+
+### Imagine.art Text-to-Video
+- Experiment with different style_ids for varied artistic styles
+- Enable prompt enhancement for more detailed video generation
+- Use descriptive prompts with specific subjects, actions, and settings
+- Choose 12s duration for more complex scenes and animations
+- 1080p resolution recommended for high-quality output
+- The API automatically polls for completion - no manual polling needed
+- Generation typically takes 1-3 minutes (the endpoint waits for completion)
 
 ## Error Handling
 

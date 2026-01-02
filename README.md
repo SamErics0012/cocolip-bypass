@@ -83,7 +83,8 @@ GET /v1/models
     {"id": "wan25fast", "object": "model", "owned_by": "cococlip"},
     {"id": "Infinitetalk", "object": "model", "owned_by": "cococlip"},
     {"id": "piclumen-realistic-v2", "object": "model", "owned_by": "piclumen"},
-    {"id": "midjourney", "object": "model", "owned_by": "piclumen"}
+    {"id": "midjourney", "object": "model", "owned_by": "piclumen"},
+    {"id": "imagine-text-to-video", "object": "model", "owned_by": "imagine.art"}
   ]
 }
 ```
@@ -211,7 +212,84 @@ Use the `prompt` field to control motion and animation:
 
 ---
 
-### 5. Text-to-Image Generation
+### 5. Imagine.art Text-to-Video Generation
+
+```bash
+POST /v1/imagine-text-to-video/generations
+```
+
+**Request:**
+```json
+{
+  "prompt": "A majestic eagle soaring through mountain peaks at sunset",
+  "aspect_ratio": "16:9",
+  "duration": 12,
+  "resolution": "1080p",
+  "style_id": 60503,
+  "is_enhance": true
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/v1/imagine-text-to-video/generations" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A majestic eagle soaring through mountain peaks at sunset",
+    "aspect_ratio": "16:9",
+    "duration": 12,
+    "resolution": "1080p",
+    "style_id": 60503,
+    "is_enhance": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": "85f8e695-38cc-4023-b15e-49313cadcbfc",
+  "status": "COMPLETED",
+  "video_url": "https://asset.imagine.art/processed/85f8e695-38cc-4023-b15e-49313cadcbfc",
+  "batch_id": "dde09073-c355-4443-aa80-0736d8358621"
+}
+```
+
+**Important Notes:**
+- The API automatically polls for completion (typically 1-3 minutes)
+- The endpoint waits until the video is fully generated before returning
+- The `video_url` in the response is ready to use immediately
+- No manual polling required - works just like other video generation endpoints
+
+**Python Example:**
+```python
+import requests
+
+url = "http://localhost:8000/v1/imagine-text-to-video/generations"
+
+payload = {
+    "prompt": "A cat eating hotdogs in a park",
+    "aspect_ratio": "16:9",
+    "duration": 12,
+    "resolution": "1080p",
+    "style_id": 60503,
+    "is_enhance": True
+}
+
+# Send generation request (API automatically polls for completion)
+response = requests.post(url, json=payload)
+result = response.json()
+
+print(f"Video ID: {result['id']}")
+print(f"Status: {result['status']}")
+print(f"Video URL: {result['video_url']}")
+
+# Video is ready to use immediately!
+# The API waits for completion before returning
+```
+
+---
+
+### 6. Text-to-Image Generation
 
 ```bash
 POST /v1/text-to-image/generations
@@ -305,6 +383,7 @@ Invoke-WebRequest -Uri "http://localhost:8000/v1/audio-to-video/generations" `
 | `hailuo23fast` | Image-to-Video | 6s, 10s | 768p | Fast image animation |
 | `wan25fast` | Image-to-Video | 5s, 10s | 720p, 1080p | High-quality image-to-video |
 | `Infinitetalk` | Audio-to-Video | Auto | 720p, 1080p | ✅ **Prompt Supported** - Talking portraits |
+| `imagine-text-to-video` | Text-to-Video | 5s, 6s, 12s | 720p, 1080p | Imagine.art Seedance - automatic polling |
 
 ### Image Generation Models
 
@@ -406,7 +485,17 @@ See [API_DOCS.md](./API_DOCS.md) for comprehensive documentation with more examp
 # Test text-to-image
 python test_api.py
 
-# Test with custom files
+# Test Imagine.art text-to-video
+python test_imagine.py
+
+# Test multiple configurations
+python test_imagine.py --multi
+
+# Test with shell script
+chmod +x test_imagine.sh
+./test_imagine.sh
+
+# Test audio-to-video with custom files
 chmod +x test_audio_to_video.sh
 ./test_audio_to_video.sh
 ```
@@ -465,6 +554,15 @@ This project is for educational purposes only. Ensure you comply with Cococlip.a
 - Be specific in prompts
 - Describe scene, subject, and action clearly
 - Use descriptive language for better results
+
+### Imagine.art Text-to-Video
+- Experiment with different `style_id` values for varied artistic styles
+- Enable `is_enhance` for more detailed video generation
+- Use descriptive prompts with specific subjects, actions, and settings
+- Choose 12s duration for more complex scenes and animations
+- 1080p resolution recommended for high-quality output
+- The API automatically polls for completion - no manual polling needed
+- Generation typically takes 1-3 minutes (the endpoint waits for completion)
 
 ### Text-to-Image
 - Detailed prompts yield better results
