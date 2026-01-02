@@ -477,9 +477,9 @@ class ImagineTextToVideoRequest(BaseModel):
         json_schema_extra={
             "example": {
                 "prompt": "A cat eating hotdogs in a park",
-                "aspect_ratio": "16:9",
-                "duration": 12,
-                "resolution": "1080p",
+                "aspect_ratio": "1:1",
+                "duration": 5,
+                "resolution": "720p",
                 "style_id": 60503,
                 "is_enhance": True,
             }
@@ -493,20 +493,20 @@ class ImagineTextToVideoRequest(BaseModel):
         max_length=2000,
         json_schema_extra={"example": "A cat eating hotdogs in a park"},
     )
-    aspect_ratio: Literal["16:9", "9:16", "4:3", "1:1"] = Field(
-        default="16:9",
-        description="Video aspect ratio",
-        json_schema_extra={"example": "16:9"},
+    aspect_ratio: Literal["3:4", "1:1", "4:3"] = Field(
+        default="1:1",
+        description="Video aspect ratio (Seedance Pro)",
+        json_schema_extra={"example": "1:1"},
     )
-    duration: Literal[5, 6, 12] = Field(
-        default=12,
-        description="Video duration in seconds (5, 6, or 12)",
-        json_schema_extra={"example": 12},
+    duration: Literal[3, 4, 5, 6, 7, 8, 9, 10, 11, 12] = Field(
+        default=5,
+        description="Video duration in seconds (Seedance Pro: 3-12s)",
+        json_schema_extra={"example": 5},
     )
-    resolution: Literal["720p", "1080p"] = Field(
-        default="1080p",
-        description="Video resolution",
-        json_schema_extra={"example": "1080p"},
+    resolution: Literal["480p", "720p", "1080p"] = Field(
+        default="720p",
+        description="Video resolution (Seedance Pro)",
+        json_schema_extra={"example": "720p"},
     )
     style_id: int = Field(
         default=60503,
@@ -1820,9 +1820,9 @@ async def generate_text_to_image(request: TextToImageRequest):
 
     **Parameters:**
     - `prompt`: Text description of the video (required)
-    - `aspect_ratio`: Video aspect ratio (16:9, 9:16, 4:3, 1:1)
-    - `duration`: Video duration in seconds (6 or 12)
-    - `resolution`: Video resolution (720p or 1080p)
+    - `aspect_ratio`: Video aspect ratio (3:4, 1:1, 4:3)
+    - `duration`: Video duration in seconds (3-12s supported)
+    - `resolution`: Video resolution (480p, 720p, or 1080p)
     - `style_id`: Style ID for video generation (default: 60503)
     - `is_enhance`: Enable prompt enhancement (default: True)
 

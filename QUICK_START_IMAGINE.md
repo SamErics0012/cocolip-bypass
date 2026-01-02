@@ -22,9 +22,9 @@ python test_imagine.py
 ```json
 {
   "prompt": "A majestic eagle soaring through mountains at sunset",
-  "aspect_ratio": "16:9",
-  "duration": 12,
-  "resolution": "1080p",
+  "aspect_ratio": "1:1",
+  "duration": 5,
+  "resolution": "720p",
   "style_id": 60503,
   "is_enhance": true
 }
@@ -37,6 +37,12 @@ python test_imagine.py
   "status": "COMPLETED",
   "video_url": "https://asset.imagine.art/processed/85f8e695-...",
   "batch_id": "dde09073-..."
+}
+
+**Seedance Pro Parameters:**
+- Durations: 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s, 11s, 12s
+- Resolutions: 480p, 720p, 1080p
+- Aspect Ratios: 3:4 (portrait), 1:1 (square), 4:3 (standard)
 }
 ```
 
@@ -54,9 +60,9 @@ def generate_video(prompt):
         "http://localhost:8000/v1/imagine-text-to-video/generations",
         json={
             "prompt": prompt,
-            "aspect_ratio": "16:9",
-            "duration": 12,
-            "resolution": "1080p",
+            "aspect_ratio": "1:1",
+            "duration": 5,
+            "resolution": "720p",
             "style_id": 60503,
             "is_enhance": True
         }
@@ -87,9 +93,9 @@ async function generateVideo(prompt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       prompt,
-      aspect_ratio: "16:9",
-      duration: 12,
-      resolution: "1080p",
+      aspect_ratio: "1:1",
+      duration: 5,
+      resolution: "720p",
       style_id: 60503,
       is_enhance: true
     })
@@ -117,9 +123,9 @@ const video = await generateVideo("A cat eating hotdogs in a park");
 | Parameter | Options | Default | Notes |
 |-----------|---------|---------|-------|
 | `prompt` | string (1-2000 chars) | **required** | Be descriptive! |
-| `aspect_ratio` | `16:9`, `9:16`, `4:3`, `1:1` | `16:9` | 16:9 for landscape, 9:16 for mobile |
-| `duration` | `5`, `6`, `12` | `12` | 12s for complex scenes |
-| `resolution` | `720p`, `1080p` | `1080p` | 1080p recommended |
+| `aspect_ratio` | `3:4`, `1:1`, `4:3` | `1:1` | 3:4 portrait, 1:1 square, 4:3 standard |
+| `duration` | `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `11`, `12` | `5` | Longer = more complex scenes |
+| `resolution` | `480p`, `720p`, `1080p` | `720p` | 480p fast, 720p balanced, 1080p quality |
 | `style_id` | integer | `60503` | Experimental: try different values |
 | `is_enhance` | boolean | `true` | Keep enabled for better results |
 
@@ -127,9 +133,10 @@ const video = await generateVideo("A cat eating hotdogs in a park");
 
 ## ⏱️ Generation Time
 
-- **5s @ 720p**: ~1-2 minutes
-- **6s @ 720p**: ~1-2 minutes
-- **12s @ 1080p**: ~2-3 minutes
+**Seedance Pro:**
+- **3-5s @ 480p**: ~60-90 seconds
+- **5-7s @ 720p**: ~90-120 seconds
+- **8-12s @ 1080p**: ~2-3 minutes
 
 **Note: The API automatically polls for completion - you don't need to do anything!**
 
@@ -137,19 +144,19 @@ const video = await generateVideo("A cat eating hotdogs in a park");
 
 ## 🎯 Common Use Cases
 
-### Landscape Video (YouTube)
+### Standard Video (YouTube/Landscape)
 ```json
-{"aspect_ratio": "16:9", "duration": 12, "resolution": "1080p"}
+{"aspect_ratio": "4:3", "duration": 10, "resolution": "1080p"}
 ```
 
-### Mobile Video (TikTok/Reels)
+### Portrait Video (TikTok/Reels)
 ```json
-{"aspect_ratio": "9:16", "duration": 6, "resolution": "720p"}
+{"aspect_ratio": "3:4", "duration": 7, "resolution": "720p"}
 ```
 
 ### Square Post (Instagram)
 ```json
-{"aspect_ratio": "1:1", "duration": 6, "resolution": "1080p"}
+{"aspect_ratio": "1:1", "duration": 5, "resolution": "720p"}
 ```
 
 ---
@@ -194,7 +201,7 @@ curl -X POST "http://localhost:8000/v1/imagine-text-to-video/generations" \
 ## 🐛 Troubleshooting
 
 ### Request takes long time
-**Fix**: Normal! The API automatically polls until video is ready (1-3 minutes).
+**Fix**: Normal! The API automatically polls until video is ready (1-3 minutes depending on duration and resolution).
 
 ### "Could not extract video ID"
 **Fix**: Check response format. May be array or object:

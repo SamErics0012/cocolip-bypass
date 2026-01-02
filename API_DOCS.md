@@ -252,9 +252,9 @@ curl -X POST "https://your-app.railway.app/v1/imagine-text-to-video/generations"
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "A cat eating hotdogs in a park",
-    "aspect_ratio": "16:9",
-    "duration": 12,
-    "resolution": "1080p",
+    "aspect_ratio": "1:1",
+    "duration": 5,
+    "resolution": "720p",
     "style_id": 60503,
     "is_enhance": true
   }'
@@ -269,9 +269,9 @@ const response = await fetch('https://your-app.railway.app/v1/imagine-text-to-vi
   },
   body: JSON.stringify({
     prompt: 'A cat eating hotdogs in a park',
-    aspect_ratio: '16:9',
-    duration: 12,
-    resolution: '1080p',
+    aspect_ratio: '1:1',
+    duration: 5,
+    resolution: '720p',
     style_id: 60503,
     is_enhance: true
   })
@@ -296,6 +296,11 @@ console.log('Video is ready at:', result.video_url);
   "batch_id": "dde09073-c355-4443-aa80-0736d8358621"
 }
 ```
+
+**Parameters:**
+- `duration`: 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s, 11s, 12s
+- `resolution`: 480p, 720p, 1080p
+- `aspect_ratio`: 3:4 (portrait), 1:1 (square), 4:3 (standard)
 
 **Important Notes:**
 - The API automatically polls for completion (typically 1-3 minutes)
@@ -529,10 +534,10 @@ console.log('Video is ready at:', result.video_url);
 
 ### Imagine.art Text-to-Video Model
 
-#### imagine-text-to-video
-- **Resolution**: 720p or 1080p
-- **Duration**: 5s, 6s, or 12s
-- **Aspect Ratio**: 16:9, 9:16, 4:3, 1:1
+#### imagine-text-to-video (Seedance Pro)
+- **Resolution**: 480p, 720p, 1080p
+- **Duration**: 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s, 11s, 12s (all supported)
+- **Aspect Ratio**: 3:4 (portrait), 1:1 (square), 4:3 (standard)
 - **Use case**: High-quality text-to-video generation with style control
 - **Special Features**: 
   - Style customization via style_id
@@ -561,12 +566,13 @@ console.log('Video is ready at:', result.video_url);
 - Describe scene, subject, and action clearly
 - Use descriptive language for better results
 
-### Imagine.art Text-to-Video
+### Imagine.art Text-to-Video (Seedance Pro)
 - Experiment with different style_ids for varied artistic styles
 - Enable prompt enhancement for more detailed video generation
 - Use descriptive prompts with specific subjects, actions, and settings
-- Choose 12s duration for more complex scenes and animations
-- 1080p resolution recommended for high-quality output
+- Duration options: 3-12s (choose longer for complex scenes)
+- Resolution options: 480p (fast), 720p (balanced), 1080p (quality)
+- Aspect ratios: 3:4 (portrait/mobile), 1:1 (square/social), 4:3 (standard)
 - The API automatically polls for completion - no manual polling needed
 - Generation typically takes 1-3 minutes (the endpoint waits for completion)
 

@@ -222,9 +222,9 @@ POST /v1/imagine-text-to-video/generations
 ```json
 {
   "prompt": "A majestic eagle soaring through mountain peaks at sunset",
-  "aspect_ratio": "16:9",
-  "duration": 12,
-  "resolution": "1080p",
+  "aspect_ratio": "1:1",
+  "duration": 5,
+  "resolution": "720p",
   "style_id": 60503,
   "is_enhance": true
 }
@@ -236,9 +236,9 @@ curl -X POST "http://localhost:8000/v1/imagine-text-to-video/generations" \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "A majestic eagle soaring through mountain peaks at sunset",
-    "aspect_ratio": "16:9",
-    "duration": 12,
-    "resolution": "1080p",
+    "aspect_ratio": "1:1",
+    "duration": 5,
+    "resolution": "720p",
     "style_id": 60503,
     "is_enhance": true
   }'
@@ -268,9 +268,9 @@ url = "http://localhost:8000/v1/imagine-text-to-video/generations"
 
 payload = {
     "prompt": "A cat eating hotdogs in a park",
-    "aspect_ratio": "16:9",
-    "duration": 12,
-    "resolution": "1080p",
+    "aspect_ratio": "1:1",
+    "duration": 5,
+    "resolution": "720p",
     "style_id": 60503,
     "is_enhance": True
 }
@@ -383,7 +383,7 @@ Invoke-WebRequest -Uri "http://localhost:8000/v1/audio-to-video/generations" `
 | `hailuo23fast` | Image-to-Video | 6s, 10s | 768p | Fast image animation |
 | `wan25fast` | Image-to-Video | 5s, 10s | 720p, 1080p | High-quality image-to-video |
 | `Infinitetalk` | Audio-to-Video | Auto | 720p, 1080p | ✅ **Prompt Supported** - Talking portraits |
-| `imagine-text-to-video` | Text-to-Video | 5s, 6s, 12s | 720p, 1080p | Imagine.art Seedance - automatic polling |
+| `imagine-text-to-video` | Text-to-Video | 3-12s | 480p, 720p, 1080p | Imagine.art Seedance Pro - automatic polling |
 
 ### Image Generation Models
 
@@ -555,12 +555,13 @@ This project is for educational purposes only. Ensure you comply with Cococlip.a
 - Describe scene, subject, and action clearly
 - Use descriptive language for better results
 
-### Imagine.art Text-to-Video
+### Imagine.art Text-to-Video (Seedance Pro)
 - Experiment with different `style_id` values for varied artistic styles
 - Enable `is_enhance` for more detailed video generation
 - Use descriptive prompts with specific subjects, actions, and settings
-- Choose 12s duration for more complex scenes and animations
-- 1080p resolution recommended for high-quality output
+- **Duration options**: 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s, 11s, 12s (choose longer for complex scenes)
+- **Resolution options**: 480p (fast), 720p (balanced), 1080p (quality)
+- **Aspect ratios**: 3:4 (portrait/mobile), 1:1 (square/social), 4:3 (standard)
 - The API automatically polls for completion - no manual polling needed
 - Generation typically takes 1-3 minutes (the endpoint waits for completion)
 
